@@ -1,0 +1,14 @@
+dist: xenial
+language: python
+python:
+  - "3.7"
+
+install:
+  - pip install poetry
+  - poetry config settings.virtualenvs.create false
+  - poetry install --no-interaction
+
+script:
+  - poetry run black --check .
+  - poetry run pylint standup
+  - poetry run pytest
