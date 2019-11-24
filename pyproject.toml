@@ -14,6 +14,9 @@ invoke = "^1.2"
 black = {version = "^18.3-alpha.0",allows-prereleases = true}
 pylint = "^2.3"
 
+[tool.poetry.scripts]
+standup = 'standup.shell:main'
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
