@@ -1,7 +1,20 @@
+import re
+from datetime import datetime, timedelta
+
+import discord
 from discord.ext import commands
 from . import persist
 
 
+STANDUP_REGEX = (
+    r"^Yesterday I:[\s\S]+\nToday I will:[\s\S]+\nPotential hard problems:[\s\S]+$"
+)
+STANDUP_DM_HELP = """Please format your standup correctly, here is a template example: ```
+Yesterday I: [...]
+Today I will: [...]
+Potential hard problems: [...]
+```\n
+"""
 BOT = commands.Bot(command_prefix=commands.when_mentioned)
 
 
@@ -16,6 +29,27 @@ async def on_command_error(ctx: commands.Context, exception):
 
     if isinstance(exception, commands.MissingPermissions):
         ctx.send(f"Failed: missing permissions `{', '.join(exception.missing_perms)}`")
+
+
+@BOT.event
+async def on_message(msg: discord.Message):
+    await BOT.process_commands(msg)
+
+    standup_channels = persist.load_channels()
+    if not msg.channel.id in standup_channels:
+        return
+
+    standup_date = persist.load_previous_standup_date_from_user(msg.author.id)
+    if standup_date and datetime.now() - standup_date < timedelta(hours=24):
+        await msg.delete()
+        return
+
+    if not re.match(STANDUP_REGEX, msg.content):
+        await msg.delete()
+        await msg.author.send(STANDUP_DM_HELP)
+        return
+
+    persist.update_standup_date_for_user(msg.author.id, datetime.now())
 
 
 @BOT.group(name="channels")
