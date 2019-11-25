@@ -15,11 +15,6 @@ docker run --name standup --env STANDUP_BOT_TOKEN="MY_TOKEN" standup
 # Dockerless
 poetry install
 STANDUP_BOT_TOKEN="MY_TOKEN" standup
-
-# Development
-poetry shell
-STANDUP_BOT_TOKEN="MY_TOKEN"
-poetry run standup
 ```
 
 ## User Guide
@@ -65,3 +60,7 @@ This is done by setting the `roles` key to a comma separated list of role ids.
 
 1: 648308883898499072 | Roles: {648395618359967744, 6483956183512382382}
 ```
+
+## Developer Guide
+
+Please read the [contributing guidelines](./CONTRIBUTING.md).
