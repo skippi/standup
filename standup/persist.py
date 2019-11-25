@@ -20,7 +20,7 @@ class Post:
 
     channel_id: int
     user_id: int
-    roles: Set[int]
+    role_ids: Set[int]
     timestamp: datetime
 
 
@@ -50,7 +50,7 @@ class Room:
     """
 
     channel_id: int
-    roles: Set[int]
+    role_ids: Set[int]
 
 
 def load_rooms() -> List[Room]:
