@@ -1,0 +1,12 @@
+__pycache__
+.dockerignore
+.gitignore
+.git
+.pylintrc
+.pytest_cache
+.travis.yml
+.vscode
+Dockerfile
+README.md
+tests
+*.pickle

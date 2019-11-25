@@ -7,8 +7,11 @@ install:
   - pip install poetry
   - poetry config settings.virtualenvs.create false
   - poetry install --no-interaction
+  - docker build -t standup .
+  - docker run -d --name standup standup
 
 script:
+  - docker ps | grep -q standup
   - poetry run black --check .
   - poetry run pylint standup
   - poetry run pytest
