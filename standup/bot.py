@@ -63,7 +63,7 @@ async def on_message(msg: discord.Message):
         persist.Post(
             channel_id=msg.channel.id,
             user_id=msg.author.id,
-            role_ids=set(),
+            role_ids=related_room.role_ids,
             timestamp=datetime.now(),
         )
     )
@@ -130,12 +130,12 @@ async def rooms_config(ctx: commands.Context, room: int, key: str, value: str):
 async def prune_expired_posts_task():
     await BOT.wait_until_ready()
 
-    while not BOT.is_closed:
+    while not BOT.is_closed():
         await asyncio.sleep(60)
 
         posts = persist.load_posts()
-        expired_posts = (
-            p for p in posts if datetime.now() - p.timestamp >= timedelta(hours=24)
+        expired_posts, remaining_posts = _span(
+            posts, lambda p: datetime.now() - p.timestamp >= timedelta(hours=24)
         )
         if not expired_posts:
             continue
@@ -147,10 +147,19 @@ async def prune_expired_posts_task():
             roles_to_remove = [guild.get_role(id) for id in post.role_ids]
             await member.remove_roles(*roles_to_remove)
 
-        remaining_posts = (
-            p for p in posts if datetime.now() - p.timestamp < timedelta(hours=24)
-        )
         persist.save_posts(remaining_posts)
 
 
 BOT.loop.create_task(prune_expired_posts_task())
+
+
+def _span(lst, pred):
+    truthy = []
+    rest = []
+    for e in lst:
+        if pred(e):
+            truthy.append(e)
+        else:
+            rest.append(e)
+
+    return (truthy, rest)
