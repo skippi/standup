@@ -24,6 +24,17 @@ poetry run standup
 
 ## User Guide
 
+### Required Permissions
+
+- `MANAGE_ROLES`
+- `VIEW_CHANNEL`
+- `SEND_MESSAGES`
+- `MANAGE_MESSAGES`
+- `READ_MESSAGE_HISTORY`
+- `ADD_REACTIONS`
+
+### Setup
+
 This bot contains the following features:
 
 - Allows delegating channels as "standup rooms".
