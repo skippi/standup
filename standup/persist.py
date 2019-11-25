@@ -1,11 +1,46 @@
 """Module for persisting data."""
 
 import pickle
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Set
+from typing import List, Set
+
 
 CHANNELS_FILE = "channels.pickle"
-DATES_FILE = "dates.pickle"
+POSTS_FILE = "posts.pickle"
+
+
+@dataclass
+class Post:
+    """
+    Represents an active standup post.
+
+    Posts are active if their age is less than 24 hours.
+    """
+
+    channel_id: int
+    user_id: int
+    roles: Set[int]
+    timestamp: datetime
+
+
+def load_posts() -> List[Post]:
+    """Returns the list of active posts."""
+
+    try:
+        with open(POSTS_FILE, "r+b") as file:
+            return pickle.load(file)
+    except FileNotFoundError:
+        return []
+    except EOFError:
+        return []
+
+
+def save_posts(posts: List[Post]):
+    """Updates the list of active posts."""
+
+    with open(POSTS_FILE, "wb") as file:
+        pickle.dump(posts, file)
 
 
 def load_channels() -> Set[int]:
@@ -25,33 +60,3 @@ def save_channels(channels: Set[int]):
 
     with open(CHANNELS_FILE, "wb") as file:
         pickle.dump(channels, file)
-
-
-def load_previous_standup_date_from_user(user_id: int) -> datetime:
-    """Returns the previous time a user posted for a standup."""
-
-    user_dates = _load_user_standup_dates()
-    return user_dates.get(user_id)
-
-
-def update_standup_date_for_user(user_id: int, date: datetime):
-    """Updates the previous time a user posted for a standup."""
-
-    user_dates = _load_user_standup_dates()
-    user_dates[user_id] = date
-    _save_user_standup_dates(user_dates)
-
-
-def _load_user_standup_dates() -> Dict[int, datetime]:
-    try:
-        with open(DATES_FILE, "r+b") as file:
-            return pickle.load(file)
-    except FileNotFoundError:
-        return {}
-    except EOFError:
-        return {}
-
-
-def _save_user_standup_dates(user_dates: Dict[int, datetime]):
-    with open(DATES_FILE, "wb") as file:
-        pickle.dump(user_dates, file)

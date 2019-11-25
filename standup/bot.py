@@ -1,3 +1,4 @@
+import asyncio
 import re
 from datetime import datetime, timedelta
 
@@ -39,17 +40,21 @@ async def on_message(msg: discord.Message):
     if not msg.channel.id in standup_channels:
         return
 
-    standup_date = persist.load_previous_standup_date_from_user(msg.author.id)
-    if standup_date and datetime.now() - standup_date < timedelta(hours=24):
-        await msg.delete()
-        return
-
     if not re.match(STANDUP_REGEX, msg.content):
         await msg.delete()
         await msg.author.send(STANDUP_DM_HELP)
         return
 
-    persist.update_standup_date_for_user(msg.author.id, datetime.now())
+    posts = persist.load_posts()
+    posts.append(
+        persist.Post(
+            channel_id=msg.channel.id,
+            user_id=msg.author.id,
+            roles=set(),
+            timestamp=datetime.now(),
+        )
+    )
+    persist.save_posts(posts)
 
 
 @BOT.group(name="channels")
@@ -79,3 +84,30 @@ async def channels_remove(_, channel_id: int):
 async def channels_list(ctx: commands.Context):
     channels_str = "\n".join(map(str, persist.load_channels()))
     await ctx.send(f"```\n{channels_str}```")
+
+
+async def prune_expired_posts_task():
+    await BOT.wait_until_ready()
+
+    while not BOT.is_closed:
+        await asyncio.sleep(60)
+
+        posts = persist.load_posts()
+        expired_posts = (
+            p for p in posts if datetime.now() - p.timestamp >= timedelta(hours=24)
+        )
+        if not expired_posts:
+            continue
+
+        for post in expired_posts:
+            channel = BOT.get_channel(post.channel_id)
+            member = channel.guild.get_member(post.user_id)
+            await member.remove_roles(*post.roles)
+
+        remaining_posts = (
+            p for p in posts if datetime.now() - p.timestamp < timedelta(hours=24)
+        )
+        persist.save_posts(remaining_posts)
+
+
+BOT.loop.create_task(prune_expired_posts_task())
