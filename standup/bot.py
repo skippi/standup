@@ -29,15 +29,20 @@ async def on_command_error(ctx: commands.Context, exception):
     await ctx.message.add_reaction("❌")
 
     if isinstance(exception, commands.MissingPermissions):
-        ctx.send(f"Failed: missing permissions `{', '.join(exception.missing_perms)}`")
+        await ctx.send(
+            f"Failed: missing permissions `{', '.join(exception.missing_perms)}`"
+        )
+    else:
+        await ctx.send(f"```\n{exception}```")
 
 
 @BOT.event
 async def on_message(msg: discord.Message):
     await BOT.process_commands(msg)
 
-    standup_channels = persist.load_channels()
-    if not msg.channel.id in standup_channels:
+    rooms = persist.load_rooms()
+    related_rooms = [r for r in rooms if r.channel_id == msg.channel.id]
+    if not related_rooms:
         return
 
     if not re.match(STANDUP_REGEX, msg.content):
@@ -57,33 +62,44 @@ async def on_message(msg: discord.Message):
     persist.save_posts(posts)
 
 
-@BOT.group(name="channels")
-async def channels_group(ctx: commands.Context):
+@BOT.group()
+async def rooms(ctx: commands.Context):
     if not ctx.invoked_subcommand:
-        await ctx.send_help(channels_group)
+        await ctx.send_help(rooms)
 
 
-@channels_group.command(name="add")
+@rooms.command(name="add")
 @commands.has_permissions(administrator=True)
-async def channels_add(_, channel_id: int):
-    channels = persist.load_channels()
-    channels.add(channel_id)
-    persist.save_channels(channels)
+async def rooms_add(ctx: commands.Context, channel_id: int):
+    rooms = persist.load_rooms()
+    conflicting_rooms = [r for r in rooms if r.channel_id == channel_id]
+    if conflicting_rooms:
+        await ctx.send(f"Failed: channel `{channel_id}` already is a room.")
+        raise commands.CommandError()
+
+    rooms.append(persist.Room(channel_id=channel_id, roles=set()))
+    persist.save_rooms(rooms)
 
 
-@channels_group.command(name="remove")
+@rooms.command(name="remove")
 @commands.has_permissions(administrator=True)
-async def channels_remove(_, channel_id: int):
-    channels = persist.load_channels()
-    channels.remove(channel_id)
-    persist.save_channels(channels)
+async def rooms_remove(_, channel_id: int):
+    rooms = persist.load_rooms()
+    new_rooms = [r for r in rooms if r.channel_id != channel_id]
+    persist.save_rooms(new_rooms)
 
 
-@channels_group.command(name="list")
+@rooms.command(name="list")
 @commands.has_permissions(administrator=True)
-async def channels_list(ctx: commands.Context):
-    channels_str = "\n".join(map(str, persist.load_channels()))
-    await ctx.send(f"```\n{channels_str}```")
+async def rooms_list(ctx: commands.Context):
+    rooms = persist.load_rooms()
+    rooms_formatted = [
+        f"{index}: {r.channel_id} | Roles: {str(r.roles) if r.roles else '{}'}"
+        for index, r in enumerate(rooms, 1)
+    ]
+    joined = "\n".join(rooms_formatted)
+
+    await ctx.send(f"```\n{joined}```")
 
 
 async def prune_expired_posts_task():
