@@ -4,12 +4,9 @@ from datetime import datetime, timedelta
 
 import discord
 from discord.ext import commands
-from standup import persist
+from standup import persist, post
 
 
-STANDUP_REGEX = (
-    r"^Yesterday I:[\s\S]+\nToday I will:[\s\S]+\nPotential hard problems:[\s\S]+$"
-)
 STANDUP_DM_HELP = """Please format your standup correctly, here is a template example: ```
 Yesterday I: [...]
 Today I will: [...]
@@ -49,7 +46,7 @@ async def on_message(msg: discord.Message):
     if not related_room:
         return
 
-    if not re.match(STANDUP_REGEX, msg.content):
+    if post.message_is_formatted(msg.content):
         await msg.delete()
         await msg.author.send(STANDUP_DM_HELP)
         return
