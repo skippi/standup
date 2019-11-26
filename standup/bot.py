@@ -1,10 +1,13 @@
+"""Module for hosting bot related functionality."""
+
+# pylint: disable=missing-function-docstring
+
 import asyncio
-import re
 from datetime import datetime, timedelta
 
 import discord
 from discord.ext import commands
-from standup import persist, post
+from standup.post import message_is_formatted
 from standup.persist import Post, Room
 
 
@@ -46,7 +49,7 @@ async def on_message(msg: discord.Message):
     if not related_room:
         return
 
-    if not post.message_is_formatted(msg.content):
+    if not message_is_formatted(msg.content):
         await msg.delete()
         await msg.author.send(STANDUP_DM_HELP)
         return
@@ -63,13 +66,13 @@ async def on_message(msg: discord.Message):
     )
 
 
-@BOT.group()
-async def rooms(ctx: commands.Context):
+@BOT.group(name="rooms")
+async def rooms_group(ctx: commands.Context):
     if not ctx.invoked_subcommand:
-        await ctx.send_help(rooms)
+        await ctx.send_help(rooms_group)
 
 
-@rooms.command(name="add")
+@rooms_group.command(name="add")
 @commands.has_permissions(administrator=True)
 async def rooms_add(ctx: commands.Context, channel_id: int):
     conflicting_room = Room.select().where(Room.channel_id == channel_id).first()
@@ -80,13 +83,13 @@ async def rooms_add(ctx: commands.Context, channel_id: int):
     Room.create(channel_id=channel_id, role_ids=set())
 
 
-@rooms.command(name="remove")
+@rooms_group.command(name="remove")
 @commands.has_permissions(administrator=True)
 async def rooms_remove(_, channel_id: int):
     Room.delete().where(Room.channel_id == channel_id).execute()
 
 
-@rooms.command(name="list")
+@rooms_group.command(name="list")
 @commands.has_permissions(administrator=True)
 async def rooms_list(ctx: commands.Context):
     rooms = Room.select()
@@ -99,7 +102,7 @@ async def rooms_list(ctx: commands.Context):
     await ctx.send(f"```\n{joined}```")
 
 
-@rooms.command(name="config")
+@rooms_group.command(name="config")
 @commands.has_permissions(administrator=True)
 async def rooms_config(ctx: commands.Context, room: int, key: str, value: str):
     target_room = Room.select().where(Room.channel_id == room).first()
