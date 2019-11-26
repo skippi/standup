@@ -65,7 +65,7 @@ def load_rooms() -> List[Room]:
         return []
 
 
-def save_rooms(rooms: List[int]):
+def save_rooms(rooms: List[Room]):
     """Updates the list of active rooms."""
 
     with open(ROOMS_FILE, "wb") as file:
