@@ -1,5 +1,8 @@
 """Module for hosting shell-related functions."""
 
+import os
+from pathlib import Path
+
 import click
 from standup.bot import BOT
 from standup.persist import DB, migrate
@@ -9,7 +12,7 @@ from standup.persist import DB, migrate
 @click.option(
     "-db",
     "--database",
-    "db_name",
+    "db_path",
     nargs=1,
     help="sqlite database file",
     metavar="<database>",
@@ -17,10 +20,12 @@ from standup.persist import DB, migrate
     show_default=True,
 )
 @click.argument("token", nargs=1, metavar="<token>")
-def main(db_name: str, token: str):
+def main(db_path: str, token: str):
     """Starts the standup bot."""
 
-    DB.init(db_name)
+    db_path_dir = Path(db_path).parents[0]
+    os.makedirs(db_path_dir, exist_ok=True)
+    DB.init(db_path)
     DB.connect()
     migrate(DB)
 
