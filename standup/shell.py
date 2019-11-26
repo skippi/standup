@@ -3,7 +3,8 @@
 import os
 import sys
 
-from standup import bot
+from standup.bot import BOT
+from standup.persist import DB, migrate
 
 
 def main():
@@ -14,4 +15,8 @@ def main():
         print(f"standup: invalid token `{token if token else ''}`")
         sys.exit(1)
 
-    bot.BOT.run(token)
+    DB.init("repo.db")
+    DB.connect()
+    migrate(DB)
+
+    BOT.run(token)

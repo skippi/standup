@@ -64,5 +64,7 @@ class Room(_BaseModel):
     role_ids = _RoleSetField()
 
 
-DB.connect()
-DB.create_tables([Post, Room])
+def migrate(database: SqliteDatabase):
+    """Migrates `database` to the current schema."""
+
+    database.create_tables([Post, Room])
