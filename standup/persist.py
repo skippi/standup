@@ -37,6 +37,7 @@ class _RoleSetField(Field):
 
 
 class _BaseModel(Model):
+    # pylint: disable=missing-class-docstring,too-few-public-methods
     class Meta:
         database = DB
 
