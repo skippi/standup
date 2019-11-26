@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 import discord
 from discord.ext import commands
-from . import persist
+from standup import persist
 
 
 STANDUP_REGEX = (

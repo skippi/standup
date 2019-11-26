@@ -3,7 +3,7 @@
 import os
 import sys
 
-from . import bot
+from standup import bot
 
 
 def main():
