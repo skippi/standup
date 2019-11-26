@@ -1,8 +1,5 @@
 """Module for hosting shell-related functions."""
 
-import os
-import sys
-
 import click
 from standup.bot import BOT
 from standup.persist import DB, migrate
@@ -19,13 +16,9 @@ from standup.persist import DB, migrate
     default="repo.db",
     show_default=True,
 )
-def main(db_name: str):
+@click.argument("token", nargs=1, metavar="<token>")
+def main(db_name: str, token: str):
     """Starts the standup bot."""
-
-    token = os.getenv("STANDUP_BOT_TOKEN")
-    if not token:
-        print(f"standup: invalid token `{token if token else ''}`")
-        sys.exit(1)
 
     DB.init(db_name)
     DB.connect()

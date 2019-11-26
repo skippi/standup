@@ -14,10 +14,13 @@ docker run --name standup --env STANDUP_BOT_TOKEN="MY_TOKEN" standup
 
 # Dockerless
 poetry install
-STANDUP_BOT_TOKEN="MY_TOKEN" standup
+standup "MY_TOKEN"
 ```
 
 ## User Guide
+
+Be sure to use `standup --help` to check out the bot's configuration options. Most
+importantly, it allows database customization to allow usage of docker volumes.
 
 ### Required Permissions
 
