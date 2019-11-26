@@ -8,7 +8,7 @@ from peewee import CharField, DateTimeField, Model, SqliteDatabase, Field
 DB = SqliteDatabase("repo.db")
 
 
-class SnowflakeField(CharField):
+class _SnowflakeField(CharField):
     def db_value(self, value: Any) -> Any:
         if isinstance(value, int):
             return str(value)
@@ -22,7 +22,7 @@ class SnowflakeField(CharField):
         return value
 
 
-class RoleSetField(Field):
+class _RoleSetField(Field):
     def db_value(self, value: Any) -> Any:
         if isinstance(value, set):
             return ",".join(str(i) for i in value)
@@ -36,31 +36,31 @@ class RoleSetField(Field):
         return value
 
 
-class BaseModel(Model):
+class _BaseModel(Model):
     class Meta:
         database = DB
 
 
-class Post(BaseModel):
+class Post(_BaseModel):
     """
     Represents an active standup post.
 
     Posts are active if their age is less than 24 hours.
     """
 
-    channel_id = SnowflakeField()
-    user_id = SnowflakeField()
-    role_ids = RoleSetField()
+    channel_id = _SnowflakeField()
+    user_id = _SnowflakeField()
+    role_ids = _RoleSetField()
     timestamp = DateTimeField()
 
 
-class Room(BaseModel):
+class Room(_BaseModel):
     """
     Represents a standup channel.
     """
 
-    channel_id = SnowflakeField()
-    role_ids = RoleSetField()
+    channel_id = _SnowflakeField()
+    role_ids = _RoleSetField()
 
 
 DB.connect()
