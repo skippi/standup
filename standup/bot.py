@@ -4,6 +4,7 @@
 
 import asyncio
 from datetime import datetime, timedelta
+from typing import List
 
 import discord
 from discord.ext import commands
@@ -111,14 +112,14 @@ async def rooms_config(ctx: commands.Context, room: int, key: str, value: str):
         raise commands.CommandError()
 
     if key == "roles":
-        role_ids = [int(s) for s in value.split(",")]
-        filtered = [id for id in role_ids if ctx.guild.get_role(id)]
+        snowflakes = _parse_snowflake_csv(value)
+        role_ids = set(id for id in snowflakes if ctx.guild.get_role(id))
+        target_room.role_ids = Room.role_ids.db_value(role_ids)
+        target_room.save()
 
-        (
-            Room.update({Room.role_ids: Room.role_ids.db_value(set(filtered))})
-            .where(Room.channel_id == room)
-            .execute()
-        )
+
+def _parse_snowflake_csv(string: str) -> List[int]:
+    return [int(s) for s in string.split(",") if s]
 
 
 async def prune_expired_posts_task():
