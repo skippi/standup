@@ -13,6 +13,6 @@ install:
 script:
   - docker ps | grep -q standup
   - poetry run black --check .
-  - poetry run mypy --ignore-missing-imports standup test
+  - poetry run mypy --ignore-missing-imports standup tests
   - poetry run pylint standup
   - poetry run pytest
