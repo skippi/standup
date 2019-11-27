@@ -55,16 +55,21 @@ async def on_message(msg: discord.Message):
         await msg.author.send(STANDUP_DM_HELP)
         return
 
-    member = msg.guild.get_member(msg.author.id)
-    roles_to_add = [msg.guild.get_role(id) for id in related_room.role_ids]
-    await member.add_roles(*roles_to_add)
-
-    Post.create(
+    new_post = Post.create(
         channel_id=msg.channel.id,
         user_id=msg.author.id,
         role_ids=related_room.role_ids,
         timestamp=datetime.now(),
     )
+
+    await _process_role_assignment(new_post)
+
+
+async def _process_role_assignment(post: Post):
+    guild = BOT.get_channel(post.channel_id).guild
+    member = guild.get_member(post.user_id)
+    roles_to_add = [guild.get_role(id) for id in post.role_ids]
+    await member.add_roles(*roles_to_add)
 
 
 @BOT.group(name="rooms")
@@ -94,13 +99,15 @@ async def rooms_remove(_, channel_id: int):
 @commands.has_permissions(administrator=True)
 async def rooms_list(ctx: commands.Context):
     rooms = Room.select()
-    rooms_formatted = [
-        f"{index}: {r.channel_id} | Roles: {str(r.role_ids) if r.role_ids else '{}'}"
-        for index, r in enumerate(rooms, 1)
-    ]
-    joined = "\n".join(rooms_formatted)
+    formatted = (_room_format(r) for r in rooms)
+    numbered = (f"{i}: {string}" for i, string in enumerate(formatted, 1))
+    joined = "\n".join(numbered)
 
     await ctx.send(f"```\n{joined}```")
+
+
+def _room_format(room: Room) -> str:
+    return f"{room.channel_id} | Roles: {str(room.role_ids) if room.role_ids else '{}'}"
 
 
 @rooms_group.command(name="config")
@@ -122,7 +129,7 @@ def _parse_snowflake_csv(string: str) -> List[int]:
     return [int(s) for s in string.split(",") if s]
 
 
-async def prune_expired_posts_task():
+async def _prune_expired_posts_task():
     await BOT.wait_until_ready()
 
     while not BOT.is_closed():
@@ -135,13 +142,15 @@ async def prune_expired_posts_task():
             continue
 
         for post in expired_posts:
-            channel = BOT.get_channel(post.channel_id)
-            guild = channel.guild
-            member = guild.get_member(post.user_id)
-            roles_to_remove = [guild.get_role(id) for id in post.role_ids]
-            await member.remove_roles(*roles_to_remove)
-
+            await _process_role_removal(post)
             post.delete_instance()
 
 
-BOT.loop.create_task(prune_expired_posts_task())
+async def _process_role_removal(post: Post):
+    guild = BOT.get_channel(post.channel_id).guild
+    member = guild.get_member(post.user_id)
+    roles_to_remove = [guild.get_role(id) for id in post.role_ids]
+    await member.remove_roles(*roles_to_remove)
+
+
+BOT.loop.create_task(_prune_expired_posts_task())
