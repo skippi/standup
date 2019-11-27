@@ -17,10 +17,35 @@ poetry install
 standup "MY_TOKEN"
 ```
 
-## User Guide
+### Docker Configuration
 
-Be sure to use `standup --help` to check out the bot's configuration options. Most
-importantly, it allows database customization to allow usage of docker volumes.
+There are two important options to configure during image creation:
+
+- Discord API token
+- Volume mount
+
+We can configure the token by passing it as an environment variable
+`STANDUP_BOT_TOKEN`. To configure volumes, mount to `/data/`. This is because
+the default Dockerfile persists all data to `/data/standup.db`. The following
+example depicts both of these options.
+
+```bash
+docker build -t "standup-img" .
+docker run --name "my-standup-container" \
+--env STANDUP_BOT_TOKEN="MY_TOKEN" \
+--mount source=standup-volume,target=/data "standup-img"
+```
+
+### Dockerless Configuration
+
+We can use `standup --help` to check the possible configuration options for the
+`standup` script. Among these include database customization.
+
+```bash
+standup --database "./data/custom_database.db" "MY_TOKEN"
+```
+
+## User Guide
 
 ### Required Permissions
 
@@ -31,7 +56,7 @@ importantly, it allows database customization to allow usage of docker volumes.
 - `READ_MESSAGE_HISTORY`
 - `ADD_REACTIONS`
 
-### Setup
+### Configuration
 
 This bot contains the following features:
 
