@@ -10,7 +10,7 @@ STANDUP_REGEX = (
 )
 
 
-def message_is_formatted(msg: str):
+def message_is_formatted(msg: str) -> bool:
     """Return `True` if `msg` matches the standup format."""
 
-    return re.match(STANDUP_REGEX, msg)
+    return bool(re.match(STANDUP_REGEX, msg))
