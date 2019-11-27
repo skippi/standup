@@ -74,6 +74,8 @@ async def _process_role_assignment(post: Post):
 
 @BOT.group(name="rooms")
 async def rooms_group(ctx: commands.Context):
+    """Manage standup rooms."""
+
     if not ctx.invoked_subcommand:
         await ctx.send_help(rooms_group)
 
@@ -81,6 +83,8 @@ async def rooms_group(ctx: commands.Context):
 @rooms_group.command(name="add")
 @commands.has_permissions(administrator=True)
 async def rooms_add(ctx: commands.Context, channel_id: int):
+    """Declares a discord channel as a standup room."""
+
     conflicting_room = Room.select().where(Room.channel_id == channel_id).first()
     if conflicting_room:
         await ctx.send(f"```Failed: channel '{channel_id}' already is a room.```")
@@ -92,12 +96,16 @@ async def rooms_add(ctx: commands.Context, channel_id: int):
 @rooms_group.command(name="remove")
 @commands.has_permissions(administrator=True)
 async def rooms_remove(_, channel_id: int):
+    """Removes a discord channel from the list of functional standup rooms."""
+
     Room.delete().where(Room.channel_id == channel_id).execute()
 
 
 @rooms_group.command(name="list")
 @commands.has_permissions(administrator=True)
 async def rooms_list(ctx: commands.Context):
+    """Lists all created standup rooms along with their assigned roles."""
+
     rooms = Room.select()
     formatted = (_room_format(r) for r in rooms)
     numbered = (f"{i}: {string}" for i, string in enumerate(formatted, 1))
@@ -113,6 +121,14 @@ def _room_format(room: Room) -> str:
 @rooms_group.command(name="config")
 @commands.has_permissions(administrator=True)
 async def rooms_config(ctx: commands.Context, room: int, key: str, value: str):
+    """
+    Configures a standup room's key-value properties.
+
+    Keys:
+    - 'roles': Accepts a comma separated list of role IDs. Use empty quotes to
+      specify an empty list.
+    """
+
     target_room = Room.select().where(Room.channel_id == room).first()
     if not target_room:
         ctx.send(f"```\nFailed: room '{room}' does not exist.```")
