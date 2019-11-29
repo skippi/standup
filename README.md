@@ -55,6 +55,7 @@ standup --database "./data/custom_database.db" "MY_TOKEN"
 - `MANAGE_MESSAGES`
 - `READ_MESSAGE_HISTORY`
 - `ADD_REACTIONS`
+- `EMBED_LINKS`
 
 ### Configuration
 

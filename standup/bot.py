@@ -145,6 +145,28 @@ def _parse_snowflake_csv(string: str) -> List[int]:
     return [int(s) for s in string.split(",") if s]
 
 
+GITHUB_URL = "https://www.github.com/skippi/standup"
+
+
+@BOT.command(aliases=["about"])
+async def info(ctx: commands.Context):
+    """Displays information about the standup bot."""
+
+    embed = discord.Embed()
+    embed.colour = discord.Colour(0x43B581)
+    embed.description = (
+        'A discord bot for conducting daily stand-ups in "The Programming Hangout".'
+    )
+    embed.set_author(name="Info", url=GITHUB_URL, icon_url=str(BOT.user.avatar_url))
+    embed.set_thumbnail(url=str(BOT.user.avatar_url))
+    embed.add_field(name="GitHub", value=f"[skippi/standup]({GITHUB_URL})")
+    embed.add_field(
+        name="Framework", value="[discord.py](https://github.com/Rapptz/discord.py)"
+    )
+
+    await ctx.send(embed=embed)
+
+
 async def _prune_expired_posts_task():
     await BOT.wait_until_ready()
 
