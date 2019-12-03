@@ -3,7 +3,7 @@
 # pylint: disable=missing-function-docstring
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from typing import List
 
 import discord
@@ -173,9 +173,7 @@ async def _prune_expired_posts_task():
     while not BOT.is_closed():
         await asyncio.sleep(60)
 
-        expired_posts = Post.select().where(
-            Post.timestamp < (datetime.now() - timedelta(hours=24))
-        )
+        expired_posts = Post.select_expired_posts(datetime.now(tz=timezone.utc))
         if len(expired_posts) == 0:
             continue
 
