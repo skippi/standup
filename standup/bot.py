@@ -59,7 +59,7 @@ async def on_message(msg: discord.Message):
         channel_id=msg.channel.id,
         user_id=msg.author.id,
         role_ids=related_room.role_ids,
-        timestamp=datetime.now(),
+        timestamp=datetime.now(tz=timezone.utc),
     )
 
     await _process_role_assignment(new_post)
@@ -123,6 +123,7 @@ async def rooms_config(ctx: commands.Context, room: int, key: str, value: str):
     Keys:
     - 'roles': Accepts a comma separated list of role IDs. Use empty quotes to
       specify an empty list.
+    - 'cooldown': Accepts an integer value representing seconds. (default: 86400)
     """
 
     target_room = Room.select().where(Room.channel_id == room).first()
@@ -135,6 +136,8 @@ async def rooms_config(ctx: commands.Context, room: int, key: str, value: str):
         role_ids = set(id for id in snowflakes if ctx.guild.get_role(id))
         target_room.role_ids = Room.role_ids.db_value(role_ids)
         target_room.save()
+    elif key == "cooldown":
+        Room.update(cooldown=int(value)).where(Room.channel_id == room).execute()
 
 
 def _parse_snowflake_csv(string: str) -> List[int]:
