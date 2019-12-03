@@ -47,13 +47,14 @@ class Post(_BaseModel):
     """
     Represents an active standup post.
 
-    Posts are active if their age is less than 24 hours.
+    Posts are active if their age is less than the room's cooldown.
     """
 
     channel_id = _SnowflakeField()
     user_id = _SnowflakeField()
     role_ids = _RoleSetField()
     timestamp = DateTimeField()
+    message_id = _SnowflakeField()
 
     @classmethod
     def create(cls, **query):

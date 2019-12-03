@@ -60,9 +60,21 @@ async def on_message(msg: discord.Message):
         user_id=msg.author.id,
         role_ids=related_room.role_ids,
         timestamp=datetime.now(tz=timezone.utc),
+        message_id=msg.id,
     )
 
     await _process_role_assignment(new_post)
+
+
+@BOT.event
+async def on_raw_message_delete(event: discord.RawMessageDeleteEvent):
+    possible_posts = Post.select().where(Post.message_id == event.message_id)
+    if len(possible_posts) == 0:
+        return
+
+    for post in possible_posts:
+        await _process_role_removal(post)
+        post.delete_instance()
 
 
 async def _process_role_assignment(post: Post):

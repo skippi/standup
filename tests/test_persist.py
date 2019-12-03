@@ -30,6 +30,7 @@ class TestPost:
             user_id=0,
             role_ids=set(),
             timestamp=date.replace(tzinfo=timezone.utc),
+            message_id=0,
         )
 
         result = list(Post.select())
@@ -39,12 +40,15 @@ class TestPost:
     def test_select_expired_posts(self):
         date = datetime(1970, 1, 1, tzinfo=timezone.utc)
         Room.create(channel_id=0, role_ids=set(), cooldown=10)
-        Post.create(channel_id=0, user_id=0, role_ids=set(), timestamp=date)
+        Post.create(
+            channel_id=0, user_id=0, role_ids=set(), timestamp=date, message_id=0
+        )
         Post.create(
             channel_id=0,
             user_id=0,
             role_ids=0,
             timestamp=(date + timedelta(seconds=20)),
+            message_id=0,
         )
 
         target_time = datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=11)
