@@ -107,15 +107,11 @@ async def rooms_list(ctx: commands.Context):
     """Lists all created standup rooms along with their assigned roles."""
 
     rooms = Room.select()
-    formatted = (_room_format(r) for r in rooms)
+    formatted = (r.format_for_listing() for r in rooms)
     numbered = (f"{i}: {string}" for i, string in enumerate(formatted, 1))
     joined = "\n".join(numbered)
 
     await ctx.send(f"```\n{joined}```")
-
-
-def _room_format(room: Room) -> str:
-    return f"{room.channel_id} | Roles: {str(room.role_ids) if room.role_ids else '{}'}"
 
 
 @rooms_group.command(name="config")

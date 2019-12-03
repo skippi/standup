@@ -49,3 +49,15 @@ class TestPost:
 
         target_time = datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=11)
         assert len(Post.select_expired_posts(target_time)) == 1
+
+
+class TestRoom:
+    def test_format_for_listing(self):
+        room = Room(channel_id=0, role_ids=set(), cooldown=10)
+        assert room.format_for_listing() == "0 | Cooldown: 10 | Roles: {}"
+
+    def test_format_for_listing_lists_roles(self):
+        room = Room(channel_id=0, role_ids={12312321, 123812}, cooldown=10)
+        assert (
+            room.format_for_listing() == "0 | Cooldown: 10 | Roles: {12312321, 123812}"
+        )

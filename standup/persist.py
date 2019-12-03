@@ -95,6 +95,12 @@ class Room(_BaseModel):
     role_ids = _RoleSetField()
     cooldown = IntegerField(default=86400)
 
+    def format_for_listing(self) -> str:
+        """Formats the Room for the `rooms list` command."""
+
+        roles_str = str(self.role_ids) if self.role_ids else "{}"
+        return f"{self.channel_id} | Cooldown: {self.cooldown} | Roles: {roles_str}"
+
 
 def migrate(database: SqliteDatabase):
     """Migrates `database` to the current schema."""
