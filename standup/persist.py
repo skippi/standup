@@ -90,6 +90,13 @@ class Post(_BaseModel):
         )
 
 
+class PostRole(_BaseModel):
+    """Represents a room's assigned roles"""
+
+    post = ForeignKeyField(Post)
+    role_id = _SnowflakeField()
+
+
 class Room(_BaseModel):
     """
     Represents a standup channel.
@@ -126,7 +133,10 @@ class RoomRole(_BaseModel):
     role_id = _SnowflakeField()
 
 
-def migrate(database: SqliteDatabase):
-    """Migrates `database` to the current schema."""
+def initialize(database: SqliteDatabase):
+    """Initializes `database` to the current schema."""
 
-    database.create_tables([Post, Room])
+    database.create_tables(MODELS)
+
+
+MODELS = [Post, PostRole, Room, RoomRole]

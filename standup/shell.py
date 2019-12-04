@@ -5,7 +5,7 @@ from pathlib import Path
 
 import click
 from standup.bot import BOT
-from standup.persist import DB, migrate
+from standup.persist import DB, initialize
 
 
 @click.command(options_metavar="[options]")
@@ -27,6 +27,6 @@ def main(db_path: str, token: str):
     os.makedirs(db_path_dir, exist_ok=True)
     DB.init(db_path)
     DB.connect()
-    migrate(DB)
+    initialize(DB)
 
     BOT.run(token)

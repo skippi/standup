@@ -2,23 +2,30 @@ from datetime import datetime, timezone, timedelta
 from functools import wraps
 
 from peewee import SqliteDatabase
-from standup.persist import Post, Room, RoomRole
+from standup.persist import Post, Room, RoomRole, MODELS, initialize
+
 
 _TEST_DB = SqliteDatabase(":memory:")
-_MODELS = [Post, Room, RoomRole]
 
 
 def use_test_database(fn):
     @wraps(fn)
     def inner(self):
-        with _TEST_DB.bind_ctx(_MODELS):
-            _TEST_DB.create_tables(_MODELS)
+        with _TEST_DB.bind_ctx(MODELS):
+            initialize(_TEST_DB)
             try:
                 fn(self)
             finally:
-                _TEST_DB.drop_tables(_MODELS)
+                _TEST_DB.drop_tables(MODELS)
 
     return inner
+
+
+def test_initialize():
+    test_db = SqliteDatabase(":memory:")
+    with test_db.bind_ctx(MODELS):
+        initialize(test_db)
+        assert test_db.get_tables() == [t._meta.table_name for t in MODELS]
 
 
 class TestPost:
