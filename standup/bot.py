@@ -102,7 +102,7 @@ async def rooms_add(ctx: commands.Context, channel_id: int):
         await ctx.send(f"```Failed: channel '{channel_id}' already is a room.```")
         raise commands.CommandError()
 
-    Room.create(channel_id=channel_id, role_ids=set())
+    Room.create(channel_id=channel_id)
 
 
 @rooms_group.command(name="remove")
@@ -145,9 +145,7 @@ async def rooms_config(ctx: commands.Context, room: int, key: str, value: str):
 
     if key == "roles":
         snowflakes = _parse_snowflake_csv(value)
-        role_ids = set(id for id in snowflakes if ctx.guild.get_role(id))
-        target_room.role_ids = Room.role_ids.db_value(role_ids)
-        target_room.save()
+        target_room.update_roles(snowflakes)
     elif key == "cooldown":
         Room.update(cooldown=int(value)).where(Room.channel_id == room).execute()
 

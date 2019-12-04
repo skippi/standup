@@ -1,9 +1,17 @@
 """Module for persisting data."""
 
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Set
 
-from peewee import CharField, DateTimeField, Model, SqliteDatabase, Field, IntegerField
+from peewee import (
+    CharField,
+    DateTimeField,
+    IntegerField,
+    Field,
+    ForeignKeyField,
+    Model,
+    SqliteDatabase,
+)
 
 
 DB = SqliteDatabase("repo.db")
@@ -93,14 +101,29 @@ class Room(_BaseModel):
     """
 
     channel_id = _SnowflakeField()
-    role_ids = _RoleSetField()
     cooldown = IntegerField(default=86400)
 
     def format_for_listing(self) -> str:
         """Formats the Room for the `rooms list` command."""
 
-        roles_str = str(self.role_ids) if self.role_ids else "{}"
+        roles_query = RoomRole.select().where(RoomRole.room == self.id)
+        role_ids = set(r.role_id for r in roles_query)
+        roles_str = str(role_ids) if role_ids else "{}"
         return f"{self.channel_id} | Cooldown: {self.cooldown} | Roles: {roles_str}"
+
+    def update_roles(self, role_ids: Set[int]):
+        """Updates the roles by setting values"""
+
+        roles_to_add = [RoomRole(room=self, role_id=role_id) for role_id in role_ids]
+        RoomRole.delete().where(RoomRole.room == self).execute()
+        RoomRole.bulk_create(roles_to_add)
+
+
+class RoomRole(_BaseModel):
+    """Represents a room's assigned roles"""
+
+    room = ForeignKeyField(Room)
+    role_id = _SnowflakeField()
 
 
 def migrate(database: SqliteDatabase):
