@@ -20,7 +20,7 @@ from standup.persist import DB, initialize
     show_default=True,
 )
 @click.argument("token", nargs=1, metavar="<token>")
-def main(db_path: str, token: str):
+def main(db_path: str, token: str) -> None:
     """Starts the standup bot."""
 
     db_path_dir = Path(db_path).parents[0]

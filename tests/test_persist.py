@@ -21,7 +21,7 @@ def use_test_database(fn):
     return inner
 
 
-def test_initialize():
+def test_initialize() -> None:
     test_db = SqliteDatabase(":memory:")
     with test_db.bind_ctx(MODELS):
         initialize(test_db)
@@ -30,7 +30,7 @@ def test_initialize():
 
 class TestPost:
     @use_test_database
-    def test_create(self):
+    def test_create(self) -> None:
         date = datetime(1970, 1, 1)
         room = Room.create(channel_id=0)
         Post.create(
@@ -43,7 +43,7 @@ class TestPost:
         assert [p.timestamp for p in Post.select()] == [date]
 
     @use_test_database
-    def test_is_expired(self):
+    def test_is_expired(self) -> None:
         date = datetime(1970, 1, 1, tzinfo=timezone.utc)
         room = Room.create(channel_id=0, cooldown=10)
         Post.create(room=room, user_id=0, timestamp=date, message_id=0)
@@ -61,12 +61,12 @@ class TestPost:
 
 class TestRoom:
     @use_test_database
-    def test_format_for_listing(self):
+    def test_format_for_listing(self) -> None:
         room = Room.create(channel_id=0, cooldown=10)
         assert room.format_for_listing() == "0 | Cooldown: 10 | Roles: {}"
 
     @use_test_database
-    def test_format_for_listing_lists_roles(self):
+    def test_format_for_listing_lists_roles(self) -> None:
         room = Room.create(channel_id=0, cooldown=10)
         RoomRole.bulk_create(
             [RoomRole(room=room, role_id=12312321), RoomRole(room=room, role_id=123812)]
@@ -77,7 +77,7 @@ class TestRoom:
         )
 
     @use_test_database
-    def test_update_roles(self):
+    def test_update_roles(self) -> None:
         room = Room.create(channel_id=0, cooldown=10)
         room.update_roles({1, 2, 3})
 

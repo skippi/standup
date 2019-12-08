@@ -22,12 +22,12 @@ BOT = commands.Bot(command_prefix=commands.when_mentioned)
 
 
 @BOT.event
-async def on_command_completion(ctx: commands.Context):
+async def on_command_completion(ctx: commands.Context) -> None:
     await ctx.message.add_reaction("✅")
 
 
 @BOT.event
-async def on_command_error(ctx: commands.Context, exception):
+async def on_command_error(ctx: commands.Context, exception: Exception) -> None:
     await ctx.message.add_reaction("❌")
 
     if isinstance(exception, commands.MissingPermissions):
@@ -43,7 +43,7 @@ async def on_command_error(ctx: commands.Context, exception):
 
 
 @BOT.event
-async def on_message(msg: discord.Message):
+async def on_message(msg: discord.Message) -> None:
     await BOT.process_commands(msg)
 
     messaged_room = Room.select().where(Room.channel_id == msg.channel.id).first()
@@ -66,7 +66,7 @@ async def on_message(msg: discord.Message):
 
 
 @BOT.event
-async def on_raw_message_delete(event: discord.RawMessageDeleteEvent):
+async def on_raw_message_delete(event: discord.RawMessageDeleteEvent) -> None:
     posts_to_delete = (
         Post.select(Post, Room).join(Room).where(Post.message_id == event.message_id)
     )
@@ -112,7 +112,7 @@ async def on_member_update(before: discord.Member, after: discord.Member) -> Non
 
 
 @BOT.group(name="rooms")
-async def rooms_group(ctx: commands.Context):
+async def rooms_group(ctx: commands.Context) -> None:
     """Manage standup rooms."""
 
     if not ctx.invoked_subcommand:
@@ -121,7 +121,7 @@ async def rooms_group(ctx: commands.Context):
 
 @rooms_group.command(name="add")
 @commands.has_permissions(administrator=True)
-async def rooms_add(ctx: commands.Context, channel_id: int):
+async def rooms_add(ctx: commands.Context, channel_id: int) -> None:
     """Declares a discord channel as a standup room."""
 
     conflicting_room = Room.select().where(Room.channel_id == channel_id).first()
@@ -134,7 +134,7 @@ async def rooms_add(ctx: commands.Context, channel_id: int):
 
 @rooms_group.command(name="remove")
 @commands.has_permissions(administrator=True)
-async def rooms_remove(_, channel_id: int):
+async def rooms_remove(_, channel_id: int) -> None:
     """Removes a discord channel from the list of functional standup rooms."""
 
     Room.delete().where(Room.channel_id == channel_id).execute()
@@ -142,7 +142,7 @@ async def rooms_remove(_, channel_id: int):
 
 @rooms_group.command(name="list")
 @commands.has_permissions(administrator=True)
-async def rooms_list(ctx: commands.Context):
+async def rooms_list(ctx: commands.Context) -> None:
     """Lists all created standup rooms along with their assigned roles."""
 
     rooms = Room.select()
@@ -155,7 +155,7 @@ async def rooms_list(ctx: commands.Context):
 
 @rooms_group.command(name="config")
 @commands.has_permissions(administrator=True)
-async def rooms_config(ctx: commands.Context, room: int, key: str, value: str):
+async def rooms_config(ctx: commands.Context, room: int, key: str, value: str) -> None:
     """
     Configures a standup room's key-value properties.
 
@@ -185,7 +185,7 @@ GITHUB_URL = "https://www.github.com/skippi/standup"
 
 
 @BOT.command(aliases=["about"])
-async def info(ctx: commands.Context):
+async def info(ctx: commands.Context) -> None:
     """Displays information about the standup bot."""
 
     embed = discord.Embed()
@@ -203,7 +203,7 @@ async def info(ctx: commands.Context):
     await ctx.send(embed=embed)
 
 
-async def _prune_expired_posts_task():
+async def _prune_expired_posts_task() -> None:
     await BOT.wait_until_ready()
 
     while not BOT.is_closed():

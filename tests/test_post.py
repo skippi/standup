@@ -1,7 +1,7 @@
 from standup.post import message_is_formatted
 
 
-def test_message_is_formatted_accepts_plain():
+def test_message_is_formatted_accepts_plain() -> None:
     msg = (
         "Yesterday I: Did nothing!\n"
         "Today I will: Work on my discord bot!\n"
@@ -11,7 +11,7 @@ def test_message_is_formatted_accepts_plain():
     assert message_is_formatted(msg)
 
 
-def test_message_is_formatted_fails_improper_newlines():
+def test_message_is_formatted_fails_improper_newlines() -> None:
     msg = (
         "Yesterday I: did nothing!"
         "Today I will: Work on my discord bot!"

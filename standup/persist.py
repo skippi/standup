@@ -1,7 +1,7 @@
 """Module for persisting data."""
 
 from datetime import datetime, timezone
-from typing import Any, Set
+from typing import Any, Set, List, Type
 
 from peewee import (
     CharField,
@@ -92,7 +92,7 @@ class Post(_BaseModel):
     message_id = _SnowflakeField()
 
     @classmethod
-    def create(cls, **query):
+    def create(cls, **query) -> "Post":
         if "timestamp" in query:
             assert query["timestamp"].tzinfo == timezone.utc
             query["timestamp"] = query["timestamp"].replace(
@@ -122,10 +122,10 @@ class RoomRole(_BaseModel):
     role_id = _SnowflakeField()
 
 
-def initialize(database: SqliteDatabase):
+def initialize(database: SqliteDatabase) -> None:
     """Initializes `database` to the current schema."""
 
     database.create_tables(MODELS)
 
 
-MODELS = [Post, Room, RoomRole]
+MODELS: List[Type[_BaseModel]] = [Post, Room, RoomRole]
