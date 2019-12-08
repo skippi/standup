@@ -4,12 +4,12 @@
 
 import asyncio
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 
 import discord
 from discord.ext import commands
 from standup.post import message_is_formatted
-from standup.persist import Post, Room
+from standup.persist import Post, Room, RoomRole
 
 
 STANDUP_DM_HELP = """Please format your standup correctly, here is a template example: ```
@@ -46,8 +46,8 @@ async def on_command_error(ctx: commands.Context, exception):
 async def on_message(msg: discord.Message):
     await BOT.process_commands(msg)
 
-    related_room = Room.select().where(Room.channel_id == msg.channel.id).first()
-    if not related_room:
+    messaged_room = Room.select().where(Room.channel_id == msg.channel.id).first()
+    if not messaged_room:
         return
 
     if not message_is_formatted(msg.content):
@@ -56,31 +56,35 @@ async def on_message(msg: discord.Message):
         return
 
     new_post = Post.create(
-        channel_id=msg.channel.id,
+        room=messaged_room,
         user_id=msg.author.id,
-        role_ids=related_room.role_ids,
         timestamp=datetime.now(tz=timezone.utc),
         message_id=msg.id,
     )
 
-    await _process_role_assignment(new_post)
+    await _post_setup_roles(new_post)
 
 
 @BOT.event
 async def on_raw_message_delete(event: discord.RawMessageDeleteEvent):
-    possible_posts = Post.select().where(Post.message_id == event.message_id)
-    if len(possible_posts) == 0:
+    posts_to_delete = (
+        Post.select(Post, Room).join(Room).where(Post.message_id == event.message_id)
+    )
+    if len(posts_to_delete) == 0:
         return
 
-    for post in possible_posts:
-        await _process_role_removal(post)
-        post.delete_instance()
+    for post in posts_to_delete:
+        await _post_setup_roles(post)
+
+    Post.delete().where(Post.id.in_([p.id for p in posts_to_delete])).execute()
 
 
-async def _process_role_assignment(post: Post):
-    guild = BOT.get_channel(post.channel_id).guild
-    member = guild.get_member(post.user_id)
-    roles_to_add = [guild.get_role(id) for id in post.role_ids]
+async def _post_setup_roles(post: Post) -> None:
+    roles_to_add = _room_fetch_roles(post.room)
+    member = _post_fetch_member(post)
+    if not member:
+        return
+
     await member.add_roles(*roles_to_add)
 
 
@@ -182,20 +186,38 @@ async def _prune_expired_posts_task():
     while not BOT.is_closed():
         await asyncio.sleep(60)
 
-        expired_posts = Post.select_expired_posts(datetime.now(tz=timezone.utc))
+        expired_posts = Post.select().join(Room).where(
+            Post.is_expired(datetime.now(tz=timezone.utc))
+        )
         if len(expired_posts) == 0:
             continue
 
         for post in expired_posts:
-            await _process_role_removal(post)
-            post.delete_instance()
+            await _post_cleanup_roles(post)
+
+        Post.delete().where(Post.id.in_([p.id for p in expired_posts])).execute()
 
 
-async def _process_role_removal(post: Post):
-    guild = BOT.get_channel(post.channel_id).guild
-    member = guild.get_member(post.user_id)
-    roles_to_remove = [guild.get_role(id) for id in post.role_ids]
+async def _post_cleanup_roles(post: Post) -> None:
+    roles_to_remove = _room_fetch_roles(post.room)
+    member = _post_fetch_member(post)
+    if not member:
+        return
+
     await member.remove_roles(*roles_to_remove)
+
+
+def _room_fetch_roles(room: Room) -> List[discord.Role]:
+    query = RoomRole.select().where(RoomRole.room == room)
+    role_ids = [room_role.role_id for room_role in query]
+
+    guild = BOT.get_channel(room.channel_id).guild
+    return [r for r in guild.roles if r.id in role_ids]
+
+
+def _post_fetch_member(post: Post) -> Optional[discord.Member]:
+    guild = BOT.get_channel(post.room.channel_id).guild
+    return guild.get_member(post.user_id)
 
 
 BOT.loop.create_task(_prune_expired_posts_task())

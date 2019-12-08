@@ -32,34 +32,31 @@ class TestPost:
     @use_test_database
     def test_create(self):
         date = datetime(1970, 1, 1)
+        room = Room.create(channel_id=0)
         Post.create(
-            channel_id=0,
+            room=room,
             user_id=0,
-            role_ids=set(),
             timestamp=date.replace(tzinfo=timezone.utc),
             message_id=0,
         )
 
-        result = list(Post.select())
-        assert [p.timestamp for p in result] == [date]
+        assert [p.timestamp for p in Post.select()] == [date]
 
     @use_test_database
-    def test_select_expired_posts(self):
+    def test_is_expired(self):
         date = datetime(1970, 1, 1, tzinfo=timezone.utc)
-        Room.create(channel_id=0, cooldown=10)
+        room = Room.create(channel_id=0, cooldown=10)
+        Post.create(room=room, user_id=0, timestamp=date, message_id=0)
         Post.create(
-            channel_id=0, user_id=0, role_ids=set(), timestamp=date, message_id=0
-        )
-        Post.create(
-            channel_id=0,
+            room=room,
             user_id=0,
-            role_ids=0,
             timestamp=(date + timedelta(seconds=20)),
             message_id=0,
         )
 
         target_time = datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=11)
-        assert len(Post.select_expired_posts(target_time)) == 1
+        result = Post.select().join(Room).where(Post.is_expired(target_time))
+        assert len(result) == 1
 
 
 class TestRoom:
