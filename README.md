@@ -65,6 +65,8 @@ This bot contains the following features:
 - All message posts in the standup room must conform to the "standup format".
 - Upon successfully posting, this bot assigns the author a customizable set of roles.
   These roles are removed from the user after a 24 hour period.
+- If any of these assigned roles are removed before the associated post expires,
+  then the post and remaining roles are removed.
 
 Knowing this, we'll need to configure our channels and roles. These next steps
 require the `ADMINISTRATOR` permission.
@@ -77,7 +79,17 @@ configuration.
 @standup-bot rooms add 648308883898499072
 @standup-bot rooms list
 
-1: 648308883898499072 | Roles: {}
+1: 648308883898499072 | Cooldown: 3600‬ | Roles: {}
+```
+
+If we want to change the cooldown per standup post, we can do so through the
+`cooldown` key:
+
+```txt
+@standup-bot rooms config 648308883898499072 cooldown 10
+@standup-bot rooms list
+
+1: 648308883898499072 | Cooldown: 10 | Roles: {648395618359967744, 6483956183512382382}
 ```
 
 Finally, we'll need to add what roles we want to assign per standup post.
@@ -87,7 +99,7 @@ This is done by setting the `roles` key to a comma separated list of role ids.
 @standup-bot rooms config 648308883898499072 roles 648395618359967744,6483956183512382382
 @standup-bot rooms list
 
-1: 648308883898499072 | Roles: {648395618359967744, 6483956183512382382}
+1: 648308883898499072 | Cooldown: 10 | Roles: {648395618359967744, 6483956183512382382}
 ```
 
 ## Developer Guide
