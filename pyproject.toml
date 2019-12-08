@@ -12,10 +12,9 @@ click = "^7.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
-black = {version = "^18.3-alpha.0",allows-prereleases = true}
 pylint = "^2.3"
 mypy = "^0.740.0"
-
+black = {version = "^18.3-alpha.0", allows-prereleases = true}
 [tool.poetry.scripts]
 standup = 'standup.shell:main'
 
