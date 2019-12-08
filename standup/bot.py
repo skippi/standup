@@ -88,6 +88,26 @@ async def _post_setup_roles(post: Post) -> None:
     await member.add_roles(*roles_to_add)
 
 
+@BOT.event
+async def on_member_update(before: discord.Member, after: discord.Member) -> None:
+    removed_roles = set(before.roles) - set(after.roles)
+    invalidated_posts = (
+        Post.select(Post, Room)
+        .join(Room)
+        .join(RoomRole, on=(RoomRole.room == Post.room))
+        .where(RoomRole.role_id.in_([r.id for r in removed_roles]))
+    )
+    for post in invalidated_posts:
+        await _post_cleanup_roles(post)
+
+        try:
+            await BOT.http.delete_message(post.room.channel_id, post.message_id)
+        except discord.NotFound:
+            pass
+
+    Post.delete().where(Post.id.in_([p.id for p in invalidated_posts])).execute()
+
+
 @BOT.group(name="rooms")
 async def rooms_group(ctx: commands.Context):
     """Manage standup rooms."""
@@ -186,8 +206,10 @@ async def _prune_expired_posts_task():
     while not BOT.is_closed():
         await asyncio.sleep(60)
 
-        expired_posts = Post.select().join(Room).where(
-            Post.is_expired(datetime.now(tz=timezone.utc))
+        expired_posts = (
+            Post.select()
+            .join(Room)
+            .where(Post.is_expired(datetime.now(tz=timezone.utc)))
         )
         if len(expired_posts) == 0:
             continue
