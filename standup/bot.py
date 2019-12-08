@@ -159,7 +159,7 @@ async def rooms_config(ctx: commands.Context, room: int, key: str, value: str):
     Keys:
     - 'roles': Accepts a comma separated list of role IDs. Use empty quotes to
       specify an empty list.
-    - 'cooldown': Accepts an integer value representing seconds. (default: 86400)
+    - 'cooldown': Accepts an integer value representing seconds. (default: 3600)
     """
 
     target_room = Room.select().where(Room.channel_id == room).first()

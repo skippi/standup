@@ -61,7 +61,7 @@ class Room(_BaseModel):
     """
 
     channel_id = _SnowflakeField()
-    cooldown = IntegerField(default=86400)
+    cooldown = IntegerField(default=3600)
 
     def format_for_listing(self) -> str:
         """Formats the Room for the `rooms list` command."""
