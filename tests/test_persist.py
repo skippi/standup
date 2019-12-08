@@ -48,10 +48,7 @@ class TestPost:
         room = Room.create(channel_id=0, cooldown=10)
         Post.create(room=room, user_id=0, timestamp=date, message_id=0)
         Post.create(
-            room=room,
-            user_id=0,
-            timestamp=(date + timedelta(seconds=20)),
-            message_id=0,
+            room=room, user_id=0, timestamp=(date + timedelta(seconds=20)), message_id=0
         )
 
         target_time = datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=11)
