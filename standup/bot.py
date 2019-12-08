@@ -96,8 +96,8 @@ async def on_member_update(before: discord.Member, after: discord.Member) -> Non
         .join(Room)
         .join(RoomRole, on=(RoomRole.room == Post.room))
         .where(
-            ~(Post.is_expired(datetime.now(tz=timezone.utc))) &
-            RoomRole.role_id.in_([r.id for r in removed_roles])
+            ~(Post.is_expired(datetime.now(tz=timezone.utc)))
+            & RoomRole.role_id.in_([r.id for r in removed_roles])
         )
     )
     for post in invalidated_posts:
