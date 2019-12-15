@@ -14,7 +14,8 @@ click = "^7.0"
 pytest = "^3.0"
 pylint = "^2.3"
 mypy = "^0.740.0"
-black = {version = "^18.3-alpha.0", allows-prereleases = true}
+black = {version = "^18.3-alpha.0", allow-prereleases = true}
+
 [tool.poetry.scripts]
 standup = 'standup.shell:main'
 
