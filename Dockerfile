@@ -7,7 +7,7 @@ RUN ln -s ~/.poetry/bin/poetry /usr/local/bin/poetry
 
 WORKDIR /app
 COPY poetry.lock pyproject.toml /app/
-RUN poetry config settings.virtualenvs.create false
+RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-dev
 RUN poetry shell
 COPY . /app
