@@ -74,7 +74,7 @@ async def on_raw_message_delete(event: discord.RawMessageDeleteEvent) -> None:
         return
 
     for post in posts_to_delete:
-        await _post_setup_roles(post)
+        await _post_cleanup_roles(post)
 
     Post.delete().where(Post.id.in_([p.id for p in posts_to_delete])).execute()
 
