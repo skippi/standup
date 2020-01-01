@@ -17,6 +17,12 @@ poetry install
 standup "MY_TOKEN"
 ```
 
+### Shell Script Configuration
+
+We've provided the `run.bat` and `run.sh` scripts as a convenience for running the
+bot. To configure these, replace the variables at the top of each script with
+the appropriate values.
+
 ### Docker Configuration
 
 There are two important options to configure during image creation:
