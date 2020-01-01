@@ -12,4 +12,4 @@ RUN poetry install --no-interaction --no-dev
 RUN poetry shell
 COPY . /app
 
-CMD ["poetry", "run", "standup", "--database", "/data/standup.db", "$STANDUP_BOT_TOKEN"]
+CMD poetry run standup --database /data/standup.db $STANDUP_BOT_TOKEN
