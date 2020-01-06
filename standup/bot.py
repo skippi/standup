@@ -12,12 +12,6 @@ from standup.post import message_is_formatted
 from standup.persist import Post, Room, RoomRole
 
 
-STANDUP_DM_HELP = """Please format your standup correctly, here is a template example: ```
-Yesterday I: [...]
-Today I will: [...]
-Potential hard problems: [...]
-```\n
-"""
 BOT = commands.Bot(command_prefix=commands.when_mentioned)
 
 
@@ -52,7 +46,18 @@ async def on_message(msg: discord.Message) -> None:
 
     if not message_is_formatted(msg.content):
         await msg.delete()
-        await msg.author.send(STANDUP_DM_HELP)
+
+        dm_help = (
+            "Your posted standup is incorrectly formatted:\n"
+            f"```{msg.content}```"
+            "Please format your standup correctly, here is a template example: ```\n"
+            "Yesterday I: [...]\n"
+            "Today I will: [...]\n"
+            "Potential hard problems: [...]\n"
+            "```"
+        )
+
+        await msg.author.send(dm_help)
         return
 
     new_post = Post.create(
