@@ -102,6 +102,7 @@ async def on_member_update(before: discord.Member, after: discord.Member) -> Non
         .join(RoomRole, on=(RoomRole.room == Post.room))
         .where(
             ~(Post.is_expired(datetime.now(tz=timezone.utc)))
+            & (Post.user_id == after.id)
             & RoomRole.role_id.in_([r.id for r in removed_roles])
         )
     )
