@@ -117,6 +117,21 @@ async def on_member_update(before: discord.Member, after: discord.Member) -> Non
     Post.delete().where(Post.id.in_([p.id for p in invalidated_posts])).execute()
 
 
+@BOT.event
+async def on_member_join(member: discord.Member) -> None:
+    active_posts = (
+        Post.select()
+        .join(Room)
+        .where(
+            ~(Post.is_expired(datetime.now(tz=timezone.utc)))
+            & (Post.user_id == member.id)
+        )
+    )
+
+    for post in active_posts:
+        await _post_setup_roles(post)
+
+
 @BOT.group(name="rooms")
 async def rooms_group(ctx: commands.Context) -> None:
     """Manage standup rooms."""
